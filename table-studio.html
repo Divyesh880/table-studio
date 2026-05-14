@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Table Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:           #F5F3EF;
+    --surface:      #FFFFFF;
+    --border:       #E5E1DA;
+    --border-mid:   #C9C4BA;
+    --primary:      #6366F1;
+    --primary-hov:  #4F46E5;
+    --primary-lt:   #EEF2FF;
+    --sel-bg:       #EAE8FF;
+    --sel-ring:     #6366F1;
+    --cell-hov:     #F8F7FF;
+    --text:         #18162C;
+    --text-mid:     #6B6880;
+    --text-lt:      #A8A6B8;
+    --danger:       #EF4444;
+    --danger-lt:    #FEF2F2;
+    --danger-brd:   #FCA5A5;
+    --green:        #22C55E;
+    --r:            10px;
+    --r-sm:         7px;
+    --shadow:       0 1px 2px rgba(0,0,0,.05), 0 3px 12px rgba(0,0,0,.06);
+    --shadow-lg:    0 2px 6px rgba(0,0,0,.06), 0 8px 28px rgba(0,0,0,.08);
+}
+
+body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* =================== HEADER =================== */
+.header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.3px;
+    color: var(--text);
+    user-select: none;
+}
+
+.brand-icon {
+    width: 32px; height: 32px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.brand-icon svg { width: 17px; height: 17px; fill: white; }
+
+/* =================== TOOLBAR =================== */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+
+.sep {
+    width: 1px; height: 24px;
+    background: var(--border);
+    margin: 0 5px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .13s, border-color .13s, transform .1s;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.btn:hover  { background: var(--bg); border-color: var(--border-mid); }
+.btn:active { transform: scale(.97); }
+
+.btn.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+.btn.primary:hover { background: var(--primary-hov); border-color: var(--primary-hov); }
+
+.btn.danger { color: var(--danger); }
+.btn.danger:hover { background: var(--danger-lt); border-color: var(--danger-brd); }
+
+/* Active state — used by alignment buttons */
+.btn.active {
+    background: var(--primary-lt);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.btn.active:hover { background: #DDD9FF; }
+
+/* Alignment button group — tight pill cluster */
+.align-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+}
+.align-group .btn {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border);
+    padding: 6px 9px;
+}
+.align-group .btn:last-child { border-right: none; }
+.align-group .btn.active {
+    background: var(--primary-lt);
+    color: var(--primary);
+}
+
+.btn svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; stroke-width: 2.1;
+    fill: none; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+/* =================== MAIN =================== */
+.main {
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    min-height: calc(100vh - 58px);
+}
+
+/* =================== STATUS BAR =================== */
+.status {
+    width: 100%; max-width: 960px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 8px 14px;
+    font-size: 12.5px;
+    color: var(--text-mid);
+    min-height: 38px;
+}
+
+.status-pill {
+    background: var(--primary-lt);
+    color: var(--primary);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+.status-hint {
+    display: flex; align-items: center; gap: 5px;
+}
+
+.kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text);
+}
+
+/* =================== TABLE WRAPPER =================== */
+.table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-lg);
+    overflow: auto;
+    max-width: 100%;
+    width: 100%;
+    max-width: 960px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Row index header col */
+.row-idx {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    width: 36px; min-width: 36px;
+    height: 40px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-lt);
+    font-weight: 500;
+    cursor: default;
+    user-select: none;
+    padding: 0;
+}
+
+td {
+    border: 1px solid var(--border);
+    min-width: 110px;
+    height: 42px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--text);
+    transition: background .1s;
+    outline: none;
+    position: relative;
+    vertical-align: middle;
+}
+
+td:not(.row-idx):hover { background: var(--cell-hov); }
+
+td.selected {
+    background: var(--sel-bg) !important;
+    z-index: 1;
+}
+
+td.selected::after {
+    content: '';
+    position: absolute; inset: -1px;
+    border: 2px solid var(--sel-ring);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+td:focus {
+    outline: none;
+    background: #FFFBF0;
+}
+
+td:focus::after {
+    content: '';
+    position: absolute; inset: -1px;
+    border: 2px solid var(--green);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* =================== EXPORT SECTION =================== */
+.export-section {
+    width: 100%; max-width: 960px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: none;
+}
+
+.export-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12.5px; font-weight: 500; color: var(--text-mid);
+    background: var(--bg);
+}
+
+.export-out {
+    width: 100%;
+    border: none;
+    resize: vertical;
+    min-height: 130px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 11.5px;
+    color: var(--text);
+    background: #FEFEFE;
+    outline: none;
+    line-height: 1.7;
+}
+
+/* =================== DIALOG =================== */
+.overlay {
+    position: fixed; inset: 0;
+    background: rgba(24,22,44,.25);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.dialog {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 26px;
+    width: 300px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    transform: translateY(10px) scale(.97);
+    transition: transform .18s;
+}
+.overlay.open .dialog { transform: translateY(0) scale(1); }
+
+.dialog h3 {
+    font-size: 15px; font-weight: 600;
+    color: var(--text); margin-bottom: 18px;
+}
+
+.field { margin-bottom: 14px; }
+.field label {
+    display: block; font-size: 12px; color: var(--text-mid);
+    margin-bottom: 5px; font-weight: 500;
+}
+.field input {
+    width: 100%; padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: inherit; font-size: 14px;
+    color: var(--text); background: var(--bg);
+    outline: none; transition: border-color .13s;
+}
+.field input:focus { border-color: var(--primary); }
+
+.dialog-btns { display: flex; gap: 8px; margin-top: 18px; }
+.dialog-btns .btn { flex: 1; justify-content: center; padding: 8px; }
+
+/* =================== TOAST =================== */
+.toast {
+    position: fixed; bottom: 22px; right: 22px;
+    background: var(--text);
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 12.5px; font-weight: 500;
+    opacity: 0; transform: translateY(6px);
+    transition: all .18s;
+    pointer-events: none; z-index: 999;
+    max-width: 260px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+
+<body>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- New Table dialog -->
+<div class="overlay" id="overlay">
+    <div class="dialog">
+        <h3>Create new table</h3>
+        <div class="field">
+            <label>Rows</label>
+            <input type="number" id="dlg-rows" value="4" min="1" max="60">
+        </div>
+        <div class="field">
+            <label>Columns</label>
+            <input type="number" id="dlg-cols" value="4" min="1" max="60">
+        </div>
+        <div class="dialog-btns">
+            <button class="btn" onclick="closeDialog()">Cancel</button>
+            <button class="btn primary" onclick="confirmNew()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+    <div class="brand">
+        <div class="brand-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg>
+        </div>
+        Table Studio
+    </div>
+
+    <div class="toolbar">
+        <button class="btn primary" onclick="openDialog()">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            New
+        </button>
+
+        <div class="sep"></div>
+
+        <button class="btn" onclick="addRow()" title="Add row below">
+            <svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M7 6l-4 4 4 4"/></svg>
+            + Row
+        </button>
+        <button class="btn" onclick="addCol()" title="Add column right">
+            <svg viewBox="0 0 24 24"><path d="M10 3v18M14 3v18M6 7l4-4 4 4"/></svg>
+            + Col
+        </button>
+        <button class="btn danger" onclick="deleteRow()" title="Delete selected row">
+            <svg viewBox="0 0 24 24"><path d="M3 12h18M5 8l-2 4 2 4"/></svg>
+            − Row
+        </button>
+        <button class="btn danger" onclick="deleteCol()" title="Delete selected column">
+            <svg viewBox="0 0 24 24"><path d="M12 3v18M8 5l4-2 4 2"/></svg>
+            − Col
+        </button>
+
+        <div class="sep"></div>
+
+        <button class="btn" onclick="mergeCells()" title="Merge selected cells">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            Merge
+        </button>
+        <button class="btn" onclick="splitCell()" title="Split selected merged cell">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+            Split
+        </button>
+
+        <div class="sep"></div>
+
+        <!-- Text alignment group -->
+        <div class="align-group" id="align-group">
+            <button class="btn active" id="align-left" onclick="setAlign('left')" title="Align left">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h12M3 18h15"/></svg>
+            </button>
+            <button class="btn" id="align-center" onclick="setAlign('center')" title="Align center">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M4 18h16"/></svg>
+            </button>
+            <button class="btn" id="align-right" onclick="setAlign('right')" title="Align right">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M9 12h12M6 18h15"/></svg>
+            </button>
+            <button class="btn" id="align-justify" onclick="setAlign('justify')" title="Justify">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+        </div>
+
+        <div class="sep"></div>
+
+        <button class="btn" onclick="clearTable()" title="Clear all cell content">
+            <svg viewBox="0 0 24 24"><path d="M19 6l-14 0M10 11v6M14 11v6M5 6l1 14h12l1-14"/><path d="M9 6V4h6v2"/></svg>
+            Clear
+        </button>
+        <button class="btn primary" onclick="exportHTML()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export
+        </button>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- Status bar -->
+    <div class="status" id="status">
+        <span class="status-hint">
+            Click to select &nbsp;·&nbsp;
+            <kbd class="kbd">Ctrl</kbd>+click multi-select &nbsp;·&nbsp;
+            <kbd class="kbd">Shift</kbd>+click range &nbsp;·&nbsp;
+            <kbd class="kbd">Esc</kbd> clear
+        </span>
+    </div>
+
+    <!-- Table area -->
+    <div class="table-wrap">
+        <div id="grid"></div>
+    </div>
+
+    <!-- Export output -->
+    <div class="export-section" id="export-section">
+        <div class="export-header">
+            <span>HTML Output</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <button class="btn" onclick="beautifyHTML()" title="Auto-indent and format the HTML">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h14"/><path d="M15 15l3 3-3 3"/></svg>
+                    Beautify
+                </button>
+                <button class="btn" onclick="copyHTML()">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+        </div>
+        <textarea class="export-out" id="export-out" readonly></textarea>
+    </div>
+
+</main>
+
+<script>
+
+// =========================================================
+// STATE
+// =========================================================
+let table;          // the <table> DOM element
+let isDragging = false;
+let dragStartCell = null;
+
+// =========================================================
+// CELL FACTORY
+// =========================================================
+function createCell(text = '') {
+    const td = document.createElement('td');
+    td.contentEditable = true;
+    if (text) td.textContent = text;
+
+    td.addEventListener('mousedown', onMouseDown);
+    td.addEventListener('mouseenter', onMouseEnter);
+    td.addEventListener('mouseup',   onMouseUp);
+
+    return td;
+}
+
+// =========================================================
+// MOUSE SELECTION
+// =========================================================
+function onMouseDown(e) {
+    if (e.button !== 0) return;
+
+    if (e.shiftKey) {
+        // Range selection from first selected cell to this one
+        const first = getSelected()[0];
+        if (first) {
+            clearSelection();
+            selectRange(first, this);
+            updateStatus();
+            return;
+        }
+    }
+
+    if (!e.ctrlKey && !e.metaKey) clearSelection();
+
+    isDragging = true;
+    dragStartCell = this;
+    this.classList.add('selected');
+    updateStatus();
+    syncAlignFromSelection();
+}
+
+function onMouseEnter() {
+    if (!isDragging || !dragStartCell) return;
+    clearSelection();
+    selectRange(dragStartCell, this);
+    updateStatus();
+    syncAlignFromSelection();
+}
+
+function onMouseUp() {
+    isDragging = false;
+}
+
+document.addEventListener('mouseup', () => { isDragging = false; });
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { clearSelection(); updateStatus(); }
+});
+
+// =========================================================
+// VIRTUAL GRID MAP
+// Builds a 2D array where gridMap[r][c] = { td, startRow, startCol }
+// This correctly handles rowSpan / colSpan.
+// =========================================================
+function buildGridMap() {
+    const numRows = table.rows.length;
+    const map = [];
+
+    for (let ri = 0; ri < numRows; ri++) {
+        if (!map[ri]) map[ri] = [];
+        const tr = table.rows[ri];
+        let ci = 0;
+
+        for (let di = 0; di < tr.cells.length; di++) {
+            const td = tr.cells[di];
+
+            // Advance past already-filled grid slots
+            while (map[ri][ci]) ci++;
+
+            const rs = parseInt(td.getAttribute('rowspan') || '1');
+            const cs = parseInt(td.getAttribute('colspan') || '1');
+
+            for (let r = ri; r < ri + rs && r < numRows; r++) {
+                if (!map[r]) map[r] = [];
+                for (let c = ci; c < ci + cs; c++) {
+                    map[r][c] = { td, startRow: ri, startCol: ci };
+                }
+            }
+            ci += cs;
+        }
+    }
+    return map;
+}
+
+// Returns the start position + spans of a td in the map
+function getCellInfo(td, map) {
+    for (let r = 0; r < map.length; r++) {
+        const row = map[r] || [];
+        for (let c = 0; c < row.length; c++) {
+            const cell = row[c];
+            if (cell && cell.td === td && cell.startRow === r && cell.startCol === c) {
+                return {
+                    r, c,
+                    rowSpan: parseInt(td.getAttribute('rowspan') || '1'),
+                    colSpan: parseInt(td.getAttribute('colspan') || '1')
+                };
+            }
+        }
+    }
+    return null;
+}
+
+// =========================================================
+// RANGE SELECTION  (drag or Shift+click)
+// Selects all cells whose area overlaps the bounding box.
+// =========================================================
+function selectRange(tdA, tdB) {
+    const map = buildGridMap();
+    const a = getCellInfo(tdA, map);
+    const b = getCellInfo(tdB, map);
+    if (!a || !b) return;
+
+    // Build initial bounding box
+    let rMin = Math.min(a.r, b.r);
+    let rMax = Math.max(a.r + a.rowSpan - 1, b.r + b.rowSpan - 1);
+    let cMin = Math.min(a.c, b.c);
+    let cMax = Math.max(a.c + a.colSpan - 1, b.c + b.colSpan - 1);
+
+    // Expand bounding box until stable (handles cells that bridge the boundary)
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (let r = rMin; r <= rMax; r++) {
+            for (let c = cMin; c <= cMax; c++) {
+                const cell = map[r] && map[r][c];
+                if (!cell) continue;
+                const info = getCellInfo(cell.td, map);
+                if (!info) continue;
+
+                const newRMax = info.r + info.rowSpan - 1;
+                const newCMax = info.c + info.colSpan - 1;
+
+                if (info.r < rMin || info.c < cMin || newRMax > rMax || newCMax > cMax) {
+                    rMin = Math.min(rMin, info.r);
+                    rMax = Math.max(rMax, newRMax);
+                    cMin = Math.min(cMin, info.c);
+                    cMax = Math.max(cMax, newCMax);
+                    changed = true;
+                }
+            }
+        }
+    }
+
+    // Select all unique cells within final bounding box
+    const seen = new Set();
+    for (let r = rMin; r <= rMax; r++) {
+        for (let c = cMin; c <= cMax; c++) {
+            const cell = map[r] && map[r][c];
+            if (cell && !seen.has(cell.td)) {
+                seen.add(cell.td);
+                cell.td.classList.add('selected');
+            }
+        }
+    }
+}
+
+// =========================================================
+// SELECTION HELPERS
+// =========================================================
+function getSelected() {
+    return [...document.querySelectorAll('#grid td.selected')];
+}
+
+function clearSelection() {
+    getSelected().forEach(c => c.classList.remove('selected'));
+}
+
+// =========================================================
+// STATUS BAR
+// =========================================================
+function updateStatus() {
+    const sel = getSelected();
+    const bar = document.getElementById('status');
+
+    if (!sel.length) {
+        bar.innerHTML = `
+            <span class="status-hint">
+                Click to select &nbsp;·&nbsp;
+                <kbd class="kbd">Ctrl</kbd>+click multi-select &nbsp;·&nbsp;
+                <kbd class="kbd">Shift</kbd>+click range &nbsp;·&nbsp;
+                <kbd class="kbd">Esc</kbd> clear
+            </span>`;
+        return;
+    }
+
+    const map = buildGridMap();
+    const rows = new Set();
+    const cols = new Set();
+    sel.forEach(td => {
+        const info = getCellInfo(td, map);
+        if (info) { rows.add(info.r); cols.add(info.c); }
+    });
+
+    bar.innerHTML = `
+        <span class="status-pill">${sel.length} cell${sel.length !== 1 ? 's' : ''}</span>
+        <span>${rows.size} row${rows.size !== 1 ? 's' : ''} &times; ${cols.size} col${cols.size !== 1 ? 's' : ''} &nbsp;·&nbsp;
+        Merge to combine &nbsp;·&nbsp; Split to unmerge &nbsp;·&nbsp;
+        <kbd class="kbd">Esc</kbd> to clear</span>`;
+}
+
+// =========================================================
+// TABLE CREATION
+// =========================================================
+function openDialog() {
+    document.getElementById('overlay').classList.add('open');
+    setTimeout(() => document.getElementById('dlg-rows').focus(), 80);
+}
+
+function closeDialog() {
+    document.getElementById('overlay').classList.remove('open');
+}
+
+function confirmNew() {
+    const r = clamp(parseInt(document.getElementById('dlg-rows').value) || 4, 1, 60);
+    const c = clamp(parseInt(document.getElementById('dlg-cols').value) || 4, 1, 60);
+    buildTable(r, c);
+    closeDialog();
+}
+
+document.getElementById('overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDialog();
+});
+
+function buildTable(rows = 4, cols = 4) {
+    table = document.createElement('table');
+
+    for (let r = 0; r < rows; r++) {
+        const tr = document.createElement('tr');
+        tr.appendChild(createRowIndex(r + 1));
+        for (let c = 0; c < cols; c++) {
+            tr.appendChild(createCell());
+        }
+        table.appendChild(tr);
+    }
+
+    render();
+    toast(`${rows} × ${cols} table created`);
+}
+
+// Row index cell (non-editable, non-selectable)
+function createRowIndex(n) {
+    const td = document.createElement('td');
+    td.className = 'row-idx';
+    td.textContent = n;
+    td.contentEditable = false;
+    return td;
+}
+
+function refreshRowIndices() {
+    [...table.rows].forEach((tr, i) => {
+        const first = tr.cells[0];
+        if (first && first.classList.contains('row-idx')) {
+            first.textContent = i + 1;
+        }
+    });
+}
+
+function render() {
+    document.getElementById('grid').innerHTML = '';
+    document.getElementById('grid').appendChild(table);
+}
+
+// =========================================================
+// ROW / COL ADD
+// =========================================================
+function addRow() {
+    if (!table) return;
+    const map = buildGridMap();
+    const numCols = (map[0] || []).length;
+
+    const tr = document.createElement('tr');
+    tr.appendChild(createRowIndex(table.rows.length + 1));
+    for (let i = 0; i < numCols; i++) tr.appendChild(createCell());
+    table.appendChild(tr);
+    toast('Row added');
+}
+
+function addCol() {
+    if (!table) return;
+    [...table.rows].forEach(tr => tr.appendChild(createCell()));
+    toast('Column added');
+}
+
+// =========================================================
+// ROW / COL DELETE
+// =========================================================
+function deleteRow() {
+    const sel = getSelected();
+    if (!sel.length) return toast('Select a cell first');
+
+    const rows = [...new Set(sel.map(td => td.parentElement))];
+    rows.forEach(tr => tr.remove());
+    refreshRowIndices();
+    clearSelection();
+    updateStatus();
+    toast(`${rows.length} row${rows.length !== 1 ? 's' : ''} deleted`);
+}
+
+function deleteCol() {
+    const sel = getSelected();
+    if (!sel.length) return toast('Select a cell first');
+
+    const map = buildGridMap();
+    const positions = sel.map(td => getCellInfo(td, map)).filter(Boolean);
+
+    // Get unique column indices (skip col 0 = row index column)
+    const cols = [...new Set(positions.map(p => p.c))].sort((a, b) => b - a);
+
+    cols.forEach(ci => {
+        // ci is a logical column in the grid (not counting row-index column)
+        for (let r = 0; r < map.length; r++) {
+            const cell = map[r] && map[r][ci];
+            if (cell && cell.startRow === r && cell.startCol === ci) {
+                cell.td.remove();
+            }
+        }
+    });
+
+    clearSelection();
+    updateStatus();
+    toast(`Column${cols.length !== 1 ? 's' : ''} deleted`);
+}
+
+// =========================================================
+// MERGE
+// Merges all selected cells into one cell.
+// Uses the bounding box of their grid positions.
+// =========================================================
+function mergeCells() {
+    const sel = getSelected();
+    if (sel.length < 2) return toast('Select 2 or more cells to merge');
+
+    const map = buildGridMap();
+
+    // Compute bounding box across all selected cells (including their spans)
+    let rMin = Infinity, rMax = -Infinity, cMin = Infinity, cMax = -Infinity;
+
+    sel.forEach(td => {
+        const info = getCellInfo(td, map);
+        if (!info) return;
+        rMin = Math.min(rMin, info.r);
+        rMax = Math.max(rMax, info.r + info.rowSpan - 1);
+        cMin = Math.min(cMin, info.c);
+        cMax = Math.max(cMax, info.c + info.colSpan - 1);
+    });
+
+    // Collect all unique <td> elements in that bounding box
+    const inBox = new Map(); // td -> { r, c }
+    for (let r = rMin; r <= rMax; r++) {
+        for (let c = cMin; c <= cMax; c++) {
+            const cell = map[r] && map[r][c];
+            if (!cell) continue;
+            if (!inBox.has(cell.td)) {
+                inBox.set(cell.td, { r: cell.startRow, c: cell.startCol });
+            }
+        }
+    }
+
+    // Find the anchor: cell whose start is (rMin, cMin)
+    let anchor = null;
+    inBox.forEach((pos, td) => {
+        if (pos.r === rMin && pos.c === cMin) anchor = td;
+    });
+
+    if (!anchor) {
+        // Fallback: pick topmost-leftmost
+        let bestR = Infinity, bestC = Infinity;
+        inBox.forEach((pos, td) => {
+            if (pos.r < bestR || (pos.r === bestR && pos.c < bestC)) {
+                bestR = pos.r; bestC = pos.c; anchor = td;
+            }
+        });
+    }
+
+    // Combine text content
+    const parts = [];
+    inBox.forEach((_, td) => {
+        const t = td.textContent.trim();
+        if (t) parts.push(t);
+    });
+    anchor.textContent = parts.join(' ');
+
+    // Remove all cells except anchor
+    inBox.forEach((_, td) => { if (td !== anchor) td.remove(); });
+
+    // Set final spans on anchor
+    anchor.rowSpan = rMax - rMin + 1;
+    anchor.colSpan = cMax - cMin + 1;
+
+    clearSelection();
+    updateStatus();
+    toast('Cells merged');
+}
+
+// =========================================================
+// SPLIT
+// Splits a merged cell back into individual cells.
+// =========================================================
+function splitCell() {
+    const sel = getSelected();
+    if (!sel.length) return toast('Select a merged cell to split');
+
+    // Build map BEFORE any DOM changes so positions are accurate
+    const map = buildGridMap();
+    let count = 0;
+
+    sel.forEach(td => {
+        const rs = parseInt(td.getAttribute('rowspan') || '1');
+        const cs = parseInt(td.getAttribute('colspan') || '1');
+        if (rs <= 1 && cs <= 1) return; // not a merged cell
+
+        const info = getCellInfo(td, map);
+        if (!info) return;
+
+        const { r: startR, c: startC } = info;
+
+        // Reset spans on the anchor
+        td.rowSpan = 1;
+        td.colSpan = 1;
+
+        // For every position that was covered (except the anchor), insert a new cell
+        for (let r = startR; r < startR + rs; r++) {
+            const tr = table.rows[r];
+            if (!tr) continue;
+
+            for (let c = startC; c < startC + cs; c++) {
+                if (r === startR && c === startC) continue; // skip anchor
+
+                const newCell = createCell();
+
+                // Find the correct insert position in this row.
+                // Look for the first cell in the original map that starts
+                // at a column after c in the same row.
+                let insertBefore = null;
+                const rowMap = map[r] || [];
+                for (let ci = c + 1; ci < rowMap.length; ci++) {
+                    const here = rowMap[ci];
+                    if (here && here.startRow === r && here.startCol === ci && here.td.parentElement === tr) {
+                        insertBefore = here.td;
+                        break;
+                    }
+                }
+
+                if (insertBefore) tr.insertBefore(newCell, insertBefore);
+                else tr.appendChild(newCell);
+            }
+        }
+        count++;
+    });
+
+    clearSelection();
+    updateStatus();
+    toast(count ? 'Cell split' : 'No merged cells in selection');
+}
+
+// =========================================================
+// CLEAR TABLE
+// =========================================================
+function clearTable() {
+    if (!table) return;
+    [...document.querySelectorAll('#grid td:not(.row-idx)')].forEach(td => {
+        td.textContent = '';
+    });
+    clearSelection();
+    updateStatus();
+    toast('Table cleared');
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+function exportHTML() {
+    if (!table) return;
+
+    // Clone table and strip row-index cells before export
+    const clone = table.cloneNode(true);
+    [...clone.querySelectorAll('.row-idx')].forEach(el => el.remove());
+
+    document.getElementById('export-out').value = clone.outerHTML;
+    const section = document.getElementById('export-section');
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    toast('HTML exported');
+}
+
+function copyHTML() {
+    const text = document.getElementById('export-out').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+        .then(() => toast('Copied to clipboard!'))
+        .catch(() => toast('Copy failed — select and copy manually'));
+}
+
+// =========================================================
+// TEXT ALIGNMENT
+// =========================================================
+
+// Tracks the last-applied alignment so the button group stays in sync
+let currentAlign = 'left';
+
+function setAlign(dir) {
+    const sel = getSelected();
+
+    if (sel.length) {
+        // Apply alignment to every selected (non-index) cell
+        sel.forEach(td => {
+            td.style.textAlign = dir;
+        });
+        toast(`Aligned ${sel.length} cell${sel.length !== 1 ? 's' : ''}: ${dir}`);
+    }
+
+    // Always update active button, even with no selection (sets default)
+    currentAlign = dir;
+    updateAlignButtons(dir);
+}
+
+function updateAlignButtons(dir) {
+    ['left', 'center', 'right', 'justify'].forEach(d => {
+        const btn = document.getElementById('align-' + d);
+        if (btn) btn.classList.toggle('active', d === dir);
+    });
+}
+
+// When the user selects a cell, sync the align buttons to reflect that cell's alignment
+function syncAlignFromSelection() {
+    const sel = getSelected();
+    if (!sel.length) return;
+    const align = window.getComputedStyle(sel[0]).textAlign || 'left';
+    // Normalize computed value (browsers return 'start' for left, etc.)
+    const normalized = align === 'start' ? 'left' : align === 'end' ? 'right' : align;
+    const known = ['left', 'center', 'right', 'justify'];
+    if (known.includes(normalized)) updateAlignButtons(normalized);
+}
+
+// =========================================================
+// HTML BEAUTIFIER
+// Formats raw <table>...</table> HTML with clean 2-space indentation.
+// =========================================================
+function beautifyHTML() {
+    const textarea = document.getElementById('export-out');
+    const raw = textarea.value.trim();
+    if (!raw) return toast('Nothing to beautify — export first');
+
+    // Tags that never have children (void elements)
+    const VOID = new Set(['area','base','br','col','embed','hr','img','input',
+                          'link','meta','param','source','track','wbr']);
+
+    // Split the raw HTML into an array of tokens: tags and text nodes
+    const tokens = [];
+    const re = /(<[^>]+>|[^<]+)/g;
+    let m;
+    while ((m = re.exec(raw)) !== null) {
+        const t = m[1].trim();
+        if (t) tokens.push(t);
+    }
+
+    let indent = 0;
+    const lines = [];
+    const pad = n => '  '.repeat(Math.max(0, n));
+
+    tokens.forEach(token => {
+        if (token.startsWith('</')) {
+            // Closing tag: dedent first, then write
+            indent--;
+            lines.push(pad(indent) + token);
+
+        } else if (token.startsWith('<')) {
+            // Opening or self-closing tag
+            const tagMatch = token.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
+            const tagName  = tagMatch ? tagMatch[1].toLowerCase() : '';
+            const isSelf   = token.endsWith('/>') || VOID.has(tagName);
+
+            lines.push(pad(indent) + token);
+            if (!isSelf) indent++;
+
+        } else {
+            // Plain text node
+            lines.push(pad(indent) + token);
+        }
+    });
+
+    textarea.value = lines.join('\n');
+    toast('HTML beautified');
+}
+
+// =========================================================
+// UTILS
+// =========================================================
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2300);
+}
+
+// =========================================================
+// INIT
+// =========================================================
+buildTable(4, 4);
+
+</script>
+</body>
+</html>
