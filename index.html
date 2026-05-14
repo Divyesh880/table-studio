@@ -122,7 +122,7 @@ body {
 .btn.danger { color: var(--danger); }
 .btn.danger:hover { background: var(--danger-lt); border-color: var(--danger-brd); }
 
-/* Active state — used by alignment buttons */
+/* Active state — used by alignment and bold buttons */
 .btn.active {
     background: var(--primary-lt);
     border-color: var(--primary);
@@ -147,6 +147,15 @@ body {
 .align-group .btn.active {
     background: var(--primary-lt);
     color: var(--primary);
+}
+
+/* Bold button — slightly wider letter spacing for the "B" label */
+#btn-bold {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: .02em;
+    min-width: 36px;
+    justify-content: center;
 }
 
 .btn svg {
@@ -457,6 +466,11 @@ td:focus::after {
             </button>
         </div>
 
+        <!-- Bold toggle button -->
+        <button class="btn" id="btn-bold" onclick="toggleBold()" title="Bold (Ctrl+B)">
+            B
+        </button>
+
         <div class="sep"></div>
 
         <button class="btn" onclick="clearTable()" title="Clear all cell content">
@@ -555,6 +569,7 @@ function onMouseDown(e) {
     this.classList.add('selected');
     updateStatus();
     syncAlignFromSelection();
+    syncBoldFromSelection();   // sync Bold button state when a cell is selected
 }
 
 function onMouseEnter() {
@@ -563,6 +578,7 @@ function onMouseEnter() {
     selectRange(dragStartCell, this);
     updateStatus();
     syncAlignFromSelection();
+    syncBoldFromSelection();   // keep Bold button in sync during drag selection
 }
 
 function onMouseUp() {
@@ -573,6 +589,15 @@ document.addEventListener('mouseup', () => { isDragging = false; });
 
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { clearSelection(); updateStatus(); }
+
+    // Ctrl+B shortcut to toggle bold on selected cells
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        const sel = getSelected();
+        if (sel.length) {
+            e.preventDefault();   // prevent browser's built-in bold on contentEditable
+            toggleBold();
+        }
+    }
 });
 
 // =========================================================
@@ -1058,6 +1083,75 @@ function syncAlignFromSelection() {
     const normalized = align === 'start' ? 'left' : align === 'end' ? 'right' : align;
     const known = ['left', 'center', 'right', 'justify'];
     if (known.includes(normalized)) updateAlignButtons(normalized);
+}
+
+// =========================================================
+// BOLD TOGGLE
+// Wraps / unwraps the content of every selected cell in <strong>.
+// - If ALL selected cells are already bold  → remove bold from all.
+// - Otherwise                               → apply bold to all.
+// =========================================================
+function toggleBold() {
+    const sel = getSelected().filter(td => !td.classList.contains('row-idx'));
+    if (!sel.length) return toast('Select a cell first');
+
+    // Check whether every selected cell is currently bold
+    const allBold = sel.every(td => isCellBold(td));
+
+    sel.forEach(td => {
+        if (allBold) {
+            // Remove bold — unwrap any <strong> tags inside the cell
+        removeBoldFromCell(td);
+        } else {
+            // Apply bold — wrap the whole cell content in <strong>
+            applyBoldToCell(td);
+        }
+    });
+
+    // Keep the Bold button active state in sync
+    updateBoldButton(!allBold);
+    toast(allBold
+        ? `Bold removed from ${sel.length} cell${sel.length !== 1 ? 's' : ''}`
+        : `Bold applied to ${sel.length} cell${sel.length !== 1 ? 's' : ''}`
+    );
+}
+
+// Returns true if the cell's font-weight (inline style or computed) is bold
+function isCellBold(td) {
+    // Check inline style first (set by us via strong-wrapping approach)
+    if (td.style.fontWeight === 'bold' || td.style.fontWeight === '700') return true;
+    // Also check if the cell contains a <strong> covering all its text
+    const strong = td.querySelector('strong');
+    if (strong && strong.textContent.trim() === td.textContent.trim()) return true;
+    return false;
+}
+
+// Applies bold by setting inline font-weight: bold on the cell.
+// This is simpler and more reliable than DOM-wrapping for contentEditable cells.
+function applyBoldToCell(td) {
+    td.style.fontWeight = 'bold';
+}
+
+// Removes bold by clearing the inline font-weight style.
+function removeBoldFromCell(td) {
+    td.style.fontWeight = '';
+}
+
+// Syncs the Bold button's active / inactive look to reflect the current selection
+function syncBoldFromSelection() {
+    const sel = getSelected().filter(td => !td.classList.contains('row-idx'));
+    if (!sel.length) {
+        updateBoldButton(false);
+        return;
+    }
+    const allBold = sel.every(td => isCellBold(td));
+    updateBoldButton(allBold);
+}
+
+// Updates the visual state of the Bold button
+function updateBoldButton(isActive) {
+    const btn = document.getElementById('btn-bold');
+    if (btn) btn.classList.toggle('active', isActive);
 }
 
 // =========================================================
